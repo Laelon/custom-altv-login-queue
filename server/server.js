@@ -1,11 +1,12 @@
 import * as alt from "alt-server";
 
-let queue = [];
-let players = [];
-const max_active_players = 300;
-let last_interval_free_slots = 0;
 const max_queue_keepalive = 600000;
 const max_game_keepalive = 60000;
+const max_active_players = 300;
+
+let queue = [];
+let players = [];
+let last_interval_free_slots = 0;
 
 /** Register a Player to the Login Queue */
 alt.on("playerConnect", (player) => {
