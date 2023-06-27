@@ -76,15 +76,17 @@ function HandleQueue() {
 
         for(let i = 0; i < max_active_players - players.length; i++) {
             if(queue.length > 0) {
-                let lucky_one = alt.Player.getByID(queue[0].srvId);
-                alt.emitClient(lucky_one, "queue:spawn");
-                    
-                players.push({
-                    srvId: queue[0].srvId,
-                    hwidHash: queue[0].hwidHash,
-                    last_kA: Date.now()
-                });
-                    
+                try {
+                    let lucky_one = alt.Player.getByID(queue[0].srvId);
+                    alt.emitClient(lucky_one, "queue:spawn");
+                        
+                    players.push({
+                        srvId: queue[0].srvId,
+                        hwidHash: queue[0].hwidHash,
+                        last_kA: Date.now()
+                    });
+                } catch(e) { console.log("[QUEUE] - Could not move player out of queue, maybe disconnected and not cleaned?") }
+                                
                 queue.splice(queue[0], 1);
             }               
         }        
