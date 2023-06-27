@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="style.css">
+    </head>
+    <body>
+        <div id="queue_container">
+            <div class="loader"></div>
+
+            <div id="queue_title">
+                Login Queue Position
+            </div>
+
+            <div id="queue_position">
+                162/1123
+            </div>
+
+            <div id="queue_time">
+                ~ 22 Minutes
+            </div>
+        </div>
+    </body>
+
+    <script>
+        alt.on("queue:update", (position, queueSize, time) => {
+            document.getElementById("queue_position").innerHTML = position + "/" + queueSize;
+            document.getElementById("").innerHTML = "~ " + time + " Minutes";
+        });
+    </script>
+</html>
