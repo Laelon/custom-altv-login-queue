@@ -1,4 +1,4 @@
-# alt:V Login Queue
+# Custom alt:V Login Queue
 Script for a alt:V Login Queue.
 
 ## Installation
