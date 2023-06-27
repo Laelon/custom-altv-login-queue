@@ -7,11 +7,11 @@ UI.on("load", () => UI.focus());
 let inQueue = true;
 
 /** Set Player Dimension to Random */
-alt.local.Player.dimension = 1863012;
+alt.Player.local.dimension = 1863012;
 
 /** Handle Player Spawn */
 alt.onServer("queue:spawn", () => {
-    alt.local.Player.dimension = 0;
+    alt.Player.local.dimension = 0;
     inQueue = false;
     UI.isVisible = false;
 
@@ -20,7 +20,7 @@ alt.onServer("queue:spawn", () => {
 
 /** Handle Queue Position Update */
 alt.onServer("queue:update", (args) => {
-    UI.emit("queue:update", (args[0], args[1], args[2]));
+    UI.emit("queue:update", [args[0], args[1], args[2]]);
 });
 
 /** Queue Keep Alive Ping */

@@ -11,27 +11,39 @@ let last_interval_free_slots = 0;
 /** Register a Player to the Login Queue */
 alt.on("playerConnect", (player) => {
     for(let i = 0; i < players.length; i++) {
-        if(players[i].srvId === player.id) {
-            /* Reconnect */
+        if(players[i].hwidHash === player.hwidHash) {
+            /* Reconnect to Game */
             player.emit("queue:spawn");
-            break;
+            return;
+        }
+    }
+
+    for(let i = 0; i < queue.length; i++) {
+        if(queue[i].hwidHash === player.hwidHash) {
+            /* Reconnect to Queue */
+            queue[i].srvId = player.id;
+            queue[i].last_kA = Date.now();
+            alt.emitClientRaw(sad_one, "queue:update", [i + 1, queue.length, CalculateQueueTime(i + 1)]);
+            return;
         }
     }
     
     let queuePlayer = {
         srvId: player.id,
+        hwidHash: player.hwidHash,
         jd: Date.now(),
         last_kA: Date.now()
     }
-    
+
+    alt.emitClientRaw(player, "queue:update", [queue.length + 1, queue.length + 1, CalculateQueueTime(queue.length + 1)]);    
     queue.push(queuePlayer);	
 });
 
 /** Keep-Alive ping for Player in Queue 
- *  (to prevent empty Queue Slots after Client Crash or Disconnect) */
+ *  (to prevent faulty Queue Slots after Client Crash or Disconnect) */
 alt.onClient("queue:keepAlive", (player) => {
     for(let i = 0; i < queue.length; i++) {
-        if(queue[i].srvId === player.id) {
+        if(queue[i].hwidHash === player.hwidHash) {
             queue[i].last_kA = Date.now();
         }
     }
@@ -41,7 +53,7 @@ alt.onClient("queue:keepAlive", (player) => {
  *  to keep Slots after Crash */
 alt.onClient("queue:gameAlive", (player) => {
     for(let i = 0; i < players.length; i++) {
-        if(players[i].srvId === player.id) {
+        if(players[i].hwidHash === player.hwidHash) {
             players[i].last_kA = Date.now();
         }
     }
@@ -50,7 +62,7 @@ alt.onClient("queue:gameAlive", (player) => {
 /** Remove Player from Queue */
 alt.onClient("queue:remove", (player) => {
     for(let i = 0; i < queue.length; i++) {
-        if(queue[i].srvId === player.id) {
+        if(queue[i].hwidHash === player.hwidHash) {
             queue.splice(i, 1);
         }
     }
@@ -61,30 +73,34 @@ function HandleQueue() {
     /* Get free Slots and send the first X players a Spawn Event */
     if(players.length < max_active_players) {
         last_interval_free_slots = max_active_players - players.length;
+
         for(let i = 0; i < max_active_players - players.length; i++) {
-            let lucky_one = alt.player.getByID(queue[0].srvId);
-            lucky_one.emit("queue:spawn");
-            
-            players.push({
-                srvId: queue[0].srvId,
-                last_kA: Date.now()
-            });
-            
-            queue.splice(queue[0], 1);
-        }	
+            if(queue.length > 0) {
+                let lucky_one = alt.Player.getByID(queue[0].srvId);
+                alt.emitClient(lucky_one, "queue:spawn");
+                    
+                players.push({
+                    srvId: queue[0].srvId,
+                    hwidHash: queue[0].hwidHash,
+                    last_kA: Date.now()
+                });
+                    
+                queue.splice(queue[0], 1);
+            }               
+        }        
     }
-    
+
     /* Refresh the Position of all Players in Queue */
     for(let i = 0; i < queue.length; i++) {
-        let sad_one = alt.player.getByID(queue[i].srvId);
-        sad_one.emit("queue:update", [i + 1, queue.length, CalculateQueueTime(i + 1)]);
+        let sad_one = alt.Player.getByID(parseInt(queue[i].srvId));
+        alt.emitClientRaw(sad_one, "queue:update", [i + 1, queue.length, CalculateQueueTime(i + 1)]);
     }
 }
-setInterval(HandleQueue, 15000);
+setInterval(HandleQueue, 3000);
 
 /** Calculate estimated Queue Time */
 function CalculateQueueTime(position) {
-    let slots_per_second = last_interval_free_slots / 15;
+    let slots_per_second = last_interval_free_slots / 3;
     return slots_per_second * position;
 }
 

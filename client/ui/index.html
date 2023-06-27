@@ -22,9 +22,9 @@
     </body>
 
     <script>
-        alt.on("queue:update", (position, queueSize, time) => {
-            document.getElementById("queue_position").innerHTML = position + "/" + queueSize;
-            document.getElementById("").innerHTML = "~ " + time + " Minutes";
+        alt.on("queue:update", (args) => {
+            document.getElementById("queue_position").innerHTML = args[0] + "/" + args[1];
+            document.getElementById("queue_time").innerHTML = "~ " + args[2] + " Minutes";
         });
     </script>
 </html>
